@@ -1,0 +1,7 @@
+POST http://localhost:3333/inscricoes 
+Content-Type: application/json
+{
+
+    "nome": "Nicholas Serencovich Carvalho",
+    "email": "nicholassc.2008@gmail.com"
+}

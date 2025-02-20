@@ -1,44 +1,73 @@
-//importar o mini framework fastify
-import { fastify } from 'fastify';
-import { fastifyCors } from '@fastify/cors';
-import {validatorCompiler, serializerCompiler, ZodTypeProvider, jsonSchemaTransform} from 'fastify-type-provider-zod';
-import { z } from 'zod';
-import { fastifySwagger } from "@fastify/swagger";
+import { fastify } from "fastify";
+import { fastifyCors } from "@fastify/cors";
+import { validatorCompiler } from "fastify-type-provider-zod";
+import { serializerCompiler } from "fastify-type-provider-zod/dist/src/core";
+import { ZodTypeProvider } from "fastify-type-provider-zod/dist/src/core";
+import { jsonSchemaTransform } from "fastify-type-provider-zod/dist/src/core";
+import { z } from "zod";
+import { fastifySwagger } from "@fastify/swagger"; 
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
-app.register(fastifyCors, {
+app.setSerializerCompiler(serializerCompiler);
+app.setValidatorCompiler(validatorCompiler);
 
-    //origin true permite com que todas as urls frontend conseguem acessar as de back_end
-    //o ideal é que especifique uma rota ex: http:localhost:3000
-    origin: true
-});
-
+app.register(fastifyCors);
 app.register(fastifySwagger, {
 
-   openapi: {
+    openapi: {
 
-    info: {
+        info: {
 
-        tittle: "ALURA NODE JS",
-        version: "0.0.1"
-    }
-   }, 
-   transform:jsonSchemaTransform
+            title: "NLW COnnect",
+            version: "0.0.1",
+        },
+    },
+
+    transform: jsonSchemaTransform,
 });
 
 app.register(fastifySwaggerUi, {
 
-    routePrefix: '/docs'
+    //quando alguém acessar a rota /docs no back end, ela irá acessar a documentação do swagger
+    routePrefix: '/docs',
+
 });
 
-app.setSerializerCompiler(serializerCompiler);
-app.setValidatorCompiler(validatorCompiler);
+app.post(`/inscricoes`, {
 
-app.register(postar);
+    schema: {
+
+        body: z.object({
+
+            nome: z.string(),
+            email: z.string().email()
+        }),
+
+        response: {
+
+            201: z.object({
+                nome: z.string(),
+                email: z.string().email(),
+            })
+        },
+    },
+
+}, async (req, res) => {
+
+    const { nome, email} = req.body;
+
+    // criação da inscrição no banco de dados
+
+    return res.status(201).send({
+
+        nome,
+        email
+    });
+})
 
 app.listen({port: 3333}).then(() => {
 
-    console.log(`HTTP servidor rodando!`);
+    console.log(`Servidor HTTP rodando..`);    
 });
